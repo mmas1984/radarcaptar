@@ -25,5 +25,15 @@
   <body class="bg-[#F8FAFC] text-[#0F172A] antialiased selection:bg-[#0F5132]/15 selection:text-[#0F5132]">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      if (
+        window.location.hostname.endsWith('.github.io') &&
+        document.querySelector('script[src="/src/main.tsx"]')
+      ) {
+        var base = window.location.pathname.replace(/\/index\.html$/i, '/');
+        if (!base.endsWith('/')) base += '/';
+        if (!base.endsWith('/docs/')) window.location.replace(base + 'docs/');
+      }
+    </script>
   </body>
 </html>
