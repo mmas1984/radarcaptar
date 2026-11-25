@@ -2,7 +2,10 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import fs from 'fs';
 import path from 'path';
+import {fileURLToPath} from 'url';
 import {defineConfig} from 'vite';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig(() => {
   return {
@@ -26,11 +29,11 @@ export default defineConfig(() => {
           if (fs.existsSync(distDir) && fs.existsSync(srcAssets)) {
             fs.cpSync(srcAssets, distAssets, {recursive: true, force: true});
           }
-          // Mirror built static bundle into docs/ for GitHub Pages branch publishing
-          const docsDir = path.resolve(__dirname, 'docs');
-          if (fs.existsSync(distDir)) {
-            fs.rmSync(docsDir, {recursive: true, force: true});
-            fs.cpSync(distDir, docsDir, {recursive: true, force: true});
+          // Provide 404.html copy for SPA fallback on GitHub Pages
+          const indexHtml = path.resolve(distDir, 'index.html');
+          const notFoundHtml = path.resolve(distDir, '404.html');
+          if (fs.existsSync(indexHtml)) {
+            fs.copyFileSync(indexHtml, notFoundHtml);
           }
         },
       },

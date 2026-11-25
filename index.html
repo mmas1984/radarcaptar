@@ -30,9 +30,31 @@
         window.location.hostname.endsWith('.github.io') &&
         document.querySelector('script[src="/src/main.tsx"]')
       ) {
-        var base = window.location.pathname.replace(/\/index\.html$/i, '/');
-        if (!base.endsWith('/')) base += '/';
-        if (!base.endsWith('/docs/')) window.location.replace(base + 'docs/');
+        var root = document.getElementById('root');
+        if (root) {
+          var wrap = document.createElement('div');
+          wrap.style.cssText =
+            'min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:#F8FAFC;font-family:"Public Sans",system-ui,sans-serif;color:#0F172A;';
+          var card = document.createElement('div');
+          card.style.cssText =
+            'max-width:520px;width:100%;background:#FFFFFF;border:1px solid #E2E8F0;border-radius:12px;padding:28px;line-height:1.6;';
+          var h1 = document.createElement('h1');
+          h1.style.cssText = 'margin:0 0 12px;font-size:20px;font-weight:700;color:#0F172A;';
+          h1.textContent = 'Radar Capta — Publicação pendente no GitHub Pages';
+          var p1 = document.createElement('p');
+          p1.style.cssText = 'margin:0 0 12px;font-size:14px;color:#475569;';
+          p1.textContent =
+            'O GitHub Pages está servindo o código-fonte bruto (index.html com TypeScript) em vez da versão compilada.';
+          var p2 = document.createElement('p');
+          p2.style.cssText = 'margin:0;font-size:14px;color:#0F172A;font-weight:500;';
+          p2.textContent =
+            'Para colocar o site no ar: no repositório do GitHub, abra Settings > Pages > Build and deployment > Source e selecione "GitHub Actions". Depois execute o workflow "Deploy to GitHub Pages" na aba Actions.';
+          card.appendChild(h1);
+          card.appendChild(p1);
+          card.appendChild(p2);
+          wrap.appendChild(card);
+          root.appendChild(wrap);
+        }
       }
     </script>
   </body>
