@@ -1,0 +1,6 @@
+{
+  "name": "Radar Capta",
+  "description": "Rastreador e analista de editais públicos vigentes e captação de recursos para municípios, estados e consórcios no Brasil.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
