@@ -35,6 +35,7 @@ import {
   downloadJsonFile,
   formatEditaisJson,
 } from './utils/export';
+import { searchTransferegovClientFallback } from './utils/clientFallback';
 import { classifyDeadline, extractDomainLabel, sanitizeHttpUrl } from './utils/url';
 
 const STORAGE_SAVED_KEY = 'radar_capta_saved_v1';
@@ -52,6 +53,9 @@ function readStorage<T>(key: string, fallback: T): T {
     const raw = window.localStorage.getItem(key);
     if (!raw) return fallback;
     const parsed = JSON.parse(raw);
+    if (Array.isArray(fallback) && !Array.isArray(parsed)) {
+      return fallback;
+    }
     return parsed as T;
   } catch {
     return fallback;
@@ -59,12 +63,16 @@ function readStorage<T>(key: string, fallback: T): T {
 }
 
 function getTodayIso(): string {
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'America/Sao_Paulo',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(new Date());
+  try {
+    return new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Sao_Paulo',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(new Date());
+  } catch {
+    return new Date().toISOString().slice(0, 10);
+  }
 }
 
 const MONITORED_SOURCES = [
@@ -177,20 +185,44 @@ export default function App() {
     setSelectedEdital(null);
 
     try {
-      const response = await fetch('/api/search-editais', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(params),
-      });
+      let payload: SearchEditaisResponse | null = null;
+      let shouldUseStaticFallback = false;
 
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(
-          data?.error || 'Não foi possível concluir a busca em tempo real.',
-        );
+      try {
+        const response = await fetch('./api/search-editais', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(params),
+        });
+
+        const contentType = response.headers.get('content-type') || '';
+        const isJson = contentType.includes('application/json');
+
+        if ((response.status === 404 || response.status === 405) && !isJson) {
+          shouldUseStaticFallback = true;
+        } else if (!isJson) {
+          shouldUseStaticFallback = true;
+        } else {
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(
+              data?.error || 'Não foi possível concluir a busca em tempo real.',
+            );
+          }
+          payload = data as SearchEditaisResponse;
+        }
+      } catch (fetchErr) {
+        if (fetchErr instanceof TypeError) {
+          shouldUseStaticFallback = true;
+        } else {
+          throw fetchErr;
+        }
       }
 
-      const payload = data as SearchEditaisResponse;
+      if (shouldUseStaticFallback || !payload) {
+        payload = await searchTransferegovClientFallback(params);
+      }
+
       setResultado(payload.resultado);
       setGroundingSources(payload.groundingSources ?? []);
       setSearchQueries(payload.searchQueries ?? []);

@@ -17,6 +17,7 @@ import type {
   TrackingStatus,
 } from '../types/edital';
 import { TRACKING_STATUS_LABELS } from '../utils/constants';
+import { analyzeTransferegovClientFallback } from '../utils/clientFallback';
 import { classifyDeadline, extractDomainLabel, sanitizeHttpUrl } from '../utils/url';
 
 interface EditalInspectorProps {
@@ -78,20 +79,46 @@ export function EditalInspector({
     setAnalysisError(null);
 
     try {
-      const response = await fetch('/api/analyze-edital', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          titulo: edital.titulo,
-          orgaoEmissor: edital.orgao_emissor,
-          urlOficial: safeUrl,
-        }),
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data?.error || 'Não foi possível analisar os requisitos desta página.');
+      let result: EditalDeepAnalysis | null = null;
+      let useStaticFallback = false;
+
+      try {
+        const response = await fetch('./api/analyze-edital', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            titulo: edital.titulo,
+            orgaoEmissor: edital.orgao_emissor,
+            urlOficial: safeUrl,
+          }),
+        });
+        const contentType = response.headers.get('content-type') || '';
+        const isJson = contentType.includes('application/json');
+
+        if (!isJson && (response.status === 404 || response.status === 405 || !response.ok)) {
+          useStaticFallback = true;
+        } else if (!isJson) {
+          useStaticFallback = true;
+        } else {
+          const data = await response.json();
+          if (!response.ok) {
+            throw new Error(data?.error || 'Não foi possível analisar os requisitos desta página.');
+          }
+          result = data as EditalDeepAnalysis;
+        }
+      } catch (fetchErr) {
+        if (fetchErr instanceof TypeError) {
+          useStaticFallback = true;
+        } else {
+          throw fetchErr;
+        }
       }
-      setAnalysis(data as EditalDeepAnalysis);
+
+      if (useStaticFallback || !result) {
+        result = await analyzeTransferegovClientFallback(safeUrl);
+      }
+
+      setAnalysis(result);
     } catch (err) {
       setAnalysisError(
         err instanceof Error ? err.message : 'Falha ao consultar a página do edital.',
