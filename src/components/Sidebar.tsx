@@ -38,14 +38,14 @@ export function Sidebar({
 
   const sidebarContent = (
     <div className="flex h-full flex-col bg-white border-r border-slate-200">
-      <div className="flex h-16 items-center justify-between px-6 border-b border-slate-200 shrink-0">
+      <div className="flex min-h-16 py-3 items-center justify-between px-6 border-b border-slate-200 shrink-0">
         <button
           type="button"
           onClick={() => {
             onSelectSection('rastreador');
             onCloseMobile();
           }}
-          className="flex items-center gap-2.5 text-left whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-2 rounded-md"
+          className="flex items-start gap-2.5 text-left min-w-0 focus-visible:outline-2 focus-visible:outline-offset-2 rounded-md cursor-pointer"
         >
           <svg
             width="24"
@@ -53,15 +53,20 @@ export function Sidebar({
             viewBox="0 0 24 24"
             fill="none"
             aria-hidden="true"
-            className="shrink-0 text-[#0F5132]"
+            className="shrink-0 text-[#0F5132] mt-0.5"
           >
             <rect x="2" y="2" width="20" height="20" rx="4" stroke="currentColor" strokeWidth="1.75" />
             <path d="M7 15.5V8.5H12.2C13.9 8.5 15 9.5 15 11C15 12.5 13.9 13.5 12.2 13.5H7" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
             <path d="M12.5 13.5L16.5 16.5" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
           </svg>
-          <span className="font-display text-lg font-bold tracking-tight text-slate-900">
-            Radar Capta
-          </span>
+          <div className="min-w-0">
+            <span className="block font-display text-lg font-bold tracking-tight text-slate-900 leading-tight whitespace-nowrap">
+              Radar Capta
+            </span>
+            <span className="block text-[11px] font-medium text-slate-500 leading-snug mt-0.5">
+              Marcos Silveira e Igor Steindorfer
+            </span>
+          </div>
         </button>
 
         <button
